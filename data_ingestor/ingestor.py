@@ -14,4 +14,4 @@ def create_dataset_from_file(csv_file: Path) -> ResultsDataset:
 
 
 if __name__ == "__main__":
-    results = create_dataset_from_file("../data/kaggle/results.csv")
+    results = create_dataset_from_file(Path("../data/kaggle/results.csv"))

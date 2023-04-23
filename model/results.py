@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 
 from pandas import DataFrame
 
@@ -18,6 +19,26 @@ class ResultsDataset:
         self._get_events_from_df(df)
         self._get_tournaments_from_df(df)
         self._get_matches_from_df(df)
+
+    def get_event_from_name(self, event_name: str) -> Optional[Event]:
+        for event in self.events:
+            if event.name == event_name:
+                return event
+        return None
+
+    def get_team_from_name(self, team_name: str) -> Optional[Team]:
+        for team in self.teams:
+            if team.name == team_name:
+                return team
+        return None
+
+    def get_tournament_from_year(
+        self, tournament_name: str, year: int
+    ) -> Optional[Tournament]:
+        for tournament in self.tournaments:
+            if tournament.name == tournament_name and tournament.year == year:
+                return tournament
+        return None
 
     def _get_teams_from_df(self, df: DataFrame) -> None:
         for index, row in df.iterrows():
@@ -39,7 +60,35 @@ class ResultsDataset:
             self.events.append(Event(name=event_name))
 
     def _get_tournaments_from_df(self, df: DataFrame) -> None:
-        pass
+        for index, row in df.iterrows():
+            year = datetime.strptime(row["date"], "%Y-%m-%d").year
+            event_name = row["tournament"]
+            self._add_event(event_name)
+            self._add_tournament(event_name, year)
+
+    def _add_tournament(self, event_name: str, year: int) -> None:
+        event = self.get_event_from_name(event_name)
+        for tournament in self.tournaments:
+            if tournament.name == event.name and tournament.year == year:
+                return None
+
+        self.tournaments.append(Tournament(event_name, year))
 
     def _get_matches_from_df(self, df: DataFrame) -> None:
-        pass
+        for index, row in df.iterrows():
+            date = datetime.strptime(row["date"], "%Y-%m-%d")
+            self.matches.append(
+                Match(
+                    home_team=self.get_team_from_name(row["home_team"]),
+                    away_team=self.get_team_from_name(row["away_team"]),
+                    date=date,
+                    home_score=row["home_score"],
+                    away_score=row["away_score"],
+                    tournament=self.get_tournament_from_year(
+                        row["tournament"], date.year
+                    ),
+                    city=row["city"],
+                    country=row["country"],
+                    neutral=bool(row["neutral"]),
+                )
+            )
