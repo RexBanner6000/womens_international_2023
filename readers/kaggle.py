@@ -1,6 +1,7 @@
 from pathlib import Path
-from pandas import DataFrame
+
 import pandas as pd
+from pandas import DataFrame
 
 
 def read_kaggle_data(csv_file: Path) -> DataFrame:
