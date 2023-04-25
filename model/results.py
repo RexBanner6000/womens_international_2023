@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import List, Optional
 
+import pandas as pd
 from pandas import DataFrame
 
 from model.entities import Event, Match, Team, Tournament
@@ -67,6 +68,8 @@ class ResultsDataset:
         return tournament
 
     def _get_matches_from_df(self, df: DataFrame) -> None:
+        df["date"] = pd.to_datetime(df["date"])
+        df = df.sort_values("date")
         for index, row in df.iterrows():
             date = datetime.strptime(row["date"], "%Y-%m-%d")
             self.matches.append(
@@ -76,11 +79,14 @@ class ResultsDataset:
                     date=date,
                     home_score=row["home_score"],
                     away_score=row["away_score"],
-                    tournament=self._create_tournament(
-                        row["tournament"], date.year
-                    ),
+                    tournament=self._create_tournament(row["tournament"], date.year),
                     city=row["city"],
                     country=row["country"],
                     neutral=bool(row["neutral"]),
                 )
             )
+
+    def calculate_rankings(self) -> None:
+        for match in self.matches:
+            match.home_team.update_rating()
+            match.away_team.update_rating()

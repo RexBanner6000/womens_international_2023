@@ -1,30 +1,45 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Dict
+from typing import Dict, Optional
+
+_DEFAULT_RATING = 1500
 
 
 @dataclass
 class MatchType(Enum):
-    UNKNOWN = 0
-    QUALIFIER = 1
-    GROUP = 2
-    KNOCKOUT = 3
-    FINAL = 4
+    WORLD_CUP = 60
+    OLYMPIC_GAMES = 60
+    CONTINENTAL = 50
+    QUALIFIERS = 40
+    OTHER_TOURNAMENTS = 30
+    FRIENDLY = 20
 
 
 @dataclass
 class Team:
     name: str
-    rating: Dict[datetime, int] = field(
-        default_factory=lambda: {datetime.strptime("01/01/1900", "%d/%m/%Y"): 1500}
-    )
+    rating: Dict[datetime, int]
+
+    def __init__(self, name: str, initial_rating: Optional[int] = None):
+        date = datetime.strptime("01/01/1900", "%d/%m/%Y")
+        self.name = name
+        if initial_rating:
+            self.rating = {date: initial_rating}
+        else:
+            self.rating = {date: _DEFAULT_RATING}
 
     def update_rating(self):
         pass
 
-    def get_rating(self):
-        pass
+    def get_rating(self, date: datetime) -> Optional[int]:
+        if self.rating.get(date):
+            return self.rating[date]
+        else:
+            for key, rating in self.rating.items():
+                if date > key:
+                    return rating
+        return _DEFAULT_RATING
 
 
 @dataclass
@@ -44,14 +59,16 @@ class Match:
     date: datetime
     home_score: int
     away_score: int
-    tournament: Tournament
-    city: str
-    country: str
-    neutral: bool
-    type: MatchType = MatchType.UNKNOWN
+    tournament: Optional[Tournament] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
+    neutral: Optional[bool] = None
+    type: MatchType = MatchType.OTHER_TOURNAMENTS
 
-    def get_team_ratings(self):
-        pass
+    def get_ratings(self) -> (int, int):
+        home_rating = self.home_team.get_rating(self.date)
+        away_rating = self.away_team.get_rating(self.date)
+        return home_rating, away_rating
 
-    def update_team_ratings(self):
+    def update_ratings(self):
         pass
