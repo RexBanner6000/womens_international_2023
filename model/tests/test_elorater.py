@@ -6,11 +6,29 @@ from model.ratings import ELORater
 team_a = Team(name="A", initial_rating=630)
 team_b = Team(name="B", initial_rating=500)
 
-match = Match(
+home_win = Match(
     home_team=team_a,
     away_team=team_b,
     home_score=3,
     away_score=1,
+    type=MatchType.FRIENDLY,
+    date=datetime.now(),
+)
+
+draw = Match(
+    home_team=team_a,
+    away_team=team_b,
+    home_score=2,
+    away_score=2,
+    type=MatchType.FRIENDLY,
+    date=datetime.now(),
+)
+
+away_win = Match(
+    home_team=team_a,
+    away_team=team_b,
+    home_score=1,
+    away_score=3,
     type=MatchType.FRIENDLY,
     date=datetime.now(),
 )
@@ -32,7 +50,19 @@ def test_calculate_expected_results():
     assert rater.calculate_expected_result(800) == 0.9900990099009901
 
 
-def test_calculate_points_change():
+def test_calculate_points_change_home_win():
     rater = ELORater()
-    points_change = rater.calculate_points_change(match)
+    points_change = rater.calculate_points_change(home_win)
     assert points_change == 9.6354924061573
+
+
+def test_calculate_points_change_draw():
+    rater = ELORater()
+    points_change = rater.calculate_points_change(draw)
+    assert points_change == -3.5763383958951334
+
+
+def test_calculate_away_win():
+    rater = ELORater()
+    points_change = rater.calculate_points_change(away_win)
+    assert points_change == -20.3645075938427
