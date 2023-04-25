@@ -2,9 +2,6 @@ from model.entities import Match
 
 
 class ELORater:
-    def __init__(self):
-        pass
-
     @staticmethod
     def calculate_goal_index(goal_difference: int) -> float:
         if abs(goal_difference) <= 1:
