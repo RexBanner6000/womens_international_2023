@@ -26,14 +26,13 @@ def test_calculate_goal_index():
 
 
 def test_calculate_expected_results():
-    # TODO: Make these almost equal to
     rater = ELORater()
     assert rater.calculate_expected_result(0) == 0.5
-    assert rater.calculate_expected_result(120) == 0.666
-    assert rater.calculate_expected_result(800) == 0.99
+    assert rater.calculate_expected_result(120) == 0.6661394245831221
+    assert rater.calculate_expected_result(800) == 0.9900990099009901
 
 
 def test_calculate_points_change():
     rater = ELORater()
     points_change = rater.calculate_points_change(match)
-    assert points_change == 9.63
+    assert points_change == 9.6354924061573
