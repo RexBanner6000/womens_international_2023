@@ -6,6 +6,7 @@ import pandas as pd
 from pandas import DataFrame
 
 from model.entities import Event, Match, Team, Tournament
+from model.ratings import ELORater
 
 
 @dataclass
@@ -86,7 +87,6 @@ class ResultsDataset:
                 )
             )
 
-    def calculate_rankings(self) -> None:
+    def calculate_ratings(self) -> None:
         for match in self.matches:
-            match.home_team.update_rating()
-            match.away_team.update_rating()
+            match.update_ratings(ELORater())

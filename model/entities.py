@@ -29,8 +29,8 @@ class Team:
         else:
             self.rating = {date: _DEFAULT_RATING}
 
-    def update_rating(self):
-        pass
+    def update_rating(self, date: datetime, rating: int) -> None:
+        self.rating[date] = rating
 
     def get_rating(self, date: datetime) -> Optional[int]:
         if self.rating.get(date):
@@ -70,5 +70,9 @@ class Match:
         away_rating = self.away_team.get_rating(self.date)
         return home_rating, away_rating
 
-    def update_ratings(self):
-        pass
+    def update_ratings(self, elo) -> None:
+        home_rating, away_rating = self.get_ratings()
+        points_change = elo.calculate_points_change(self)
+
+        self.home_team.update_rating(self.date, home_rating + int(points_change))
+        self.away_team.update_rating(self.date, away_rating - int(points_change))
