@@ -72,15 +72,14 @@ class ResultsDataset:
         df["date"] = pd.to_datetime(df["date"])
         df = df.sort_values("date")
         for index, row in df.iterrows():
-            date = datetime.strptime(row["date"], "%Y-%m-%d")
             self.matches.append(
                 Match(
                     home_team=self._create_team(row["home_team"]),
                     away_team=self._create_team(row["away_team"]),
-                    date=date,
+                    date=row["date"],
                     home_score=row["home_score"],
                     away_score=row["away_score"],
-                    tournament=self._create_tournament(row["tournament"], date.year),
+                    tournament=self._create_tournament(row["tournament"], row["date"].year),
                     city=row["city"],
                     country=row["country"],
                     neutral=bool(row["neutral"]),
@@ -88,5 +87,6 @@ class ResultsDataset:
             )
 
     def calculate_ratings(self) -> None:
+        rating_system = ELORater()
         for match in self.matches:
-            match.update_ratings(ELORater())
+            rating_system.update_ratings(match)

@@ -36,11 +36,12 @@ class Team:
         if self.rating.get(date):
             return self.rating[date]
         else:
+            previous_rating = _DEFAULT_RATING
             for key, rating in self.rating.items():
-                if date > key:
-                    return rating
-        return _DEFAULT_RATING
-
+                if date < key:
+                    break
+                previous_rating = rating
+            return previous_rating
 
 @dataclass
 class Event:
@@ -64,15 +65,3 @@ class Match:
     country: Optional[str] = None
     neutral: Optional[bool] = None
     type: MatchType = MatchType.OTHER_TOURNAMENTS
-
-    def get_ratings(self) -> (int, int):
-        home_rating = self.home_team.get_rating(self.date)
-        away_rating = self.away_team.get_rating(self.date)
-        return home_rating, away_rating
-
-    def update_ratings(self, elo) -> None:
-        home_rating, away_rating = self.get_ratings()
-        points_change = elo.calculate_points_change(self)
-
-        self.home_team.update_rating(self.date, home_rating + int(points_change))
-        self.away_team.update_rating(self.date, away_rating - int(points_change))

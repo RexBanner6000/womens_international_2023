@@ -9,6 +9,7 @@ def create_dataset_from_file(csv_file: Path) -> ResultsDataset:
     df = read_kaggle_data(csv_file)
 
     results.populate_data_from_df(df)
+    results.calculate_ratings()
 
     return results
 

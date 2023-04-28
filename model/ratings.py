@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from model.entities import Match
 
 
@@ -35,3 +37,20 @@ class ELORater:
         W = self.get_result(goal_difference)
 
         return K * G * (W - We)
+
+    @staticmethod
+    def get_ratings(match: Match) -> (int, int):
+        home_rating = match.home_team.get_rating(
+            match.date - timedelta(days=1)
+        )
+        away_rating = match.away_team.get_rating(
+            match.date - timedelta(days=1)
+        )
+        return home_rating, away_rating
+
+    def update_ratings(self, match: Match) -> None:
+        home_rating, away_rating = self.get_ratings(match)
+        points_change = self.calculate_points_change(match)
+
+        match.home_team.update_rating(match.date, home_rating + int(points_change))
+        match.away_team.update_rating(match.date, away_rating - int(points_change))
