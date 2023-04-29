@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import List, Optional
 
 import pandas as pd
@@ -79,7 +78,9 @@ class ResultsDataset:
                     date=row["date"],
                     home_score=row["home_score"],
                     away_score=row["away_score"],
-                    tournament=self._create_tournament(row["tournament"], row["date"].year),
+                    tournament=self._create_tournament(
+                        row["tournament"], row["date"].year
+                    ),
                     city=row["city"],
                     country=row["country"],
                     neutral=bool(row["neutral"]),

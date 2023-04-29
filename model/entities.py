@@ -43,6 +43,7 @@ class Team:
                 previous_rating = rating
             return previous_rating
 
+
 @dataclass
 class Event:
     name: str

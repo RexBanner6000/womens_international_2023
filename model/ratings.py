@@ -40,12 +40,8 @@ class ELORater:
 
     @staticmethod
     def get_ratings(match: Match) -> (int, int):
-        home_rating = match.home_team.get_rating(
-            match.date - timedelta(days=1)
-        )
-        away_rating = match.away_team.get_rating(
-            match.date - timedelta(days=1)
-        )
+        home_rating = match.home_team.get_rating(match.date - timedelta(days=1))
+        away_rating = match.away_team.get_rating(match.date - timedelta(days=1))
         return home_rating, away_rating
 
     def update_ratings(self, match: Match) -> None:
