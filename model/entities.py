@@ -3,7 +3,10 @@ from datetime import datetime
 from enum import Enum
 from typing import Dict, Optional
 
+import matplotlib.pyplot as plt
+
 _DEFAULT_RATING = 1500
+_RATINGS_START_DATE = datetime.strptime("01/01/1950", "%d/%m/%Y")
 
 
 @dataclass
@@ -22,12 +25,11 @@ class Team:
     rating: Dict[datetime, int]
 
     def __init__(self, name: str, initial_rating: Optional[int] = None):
-        date = datetime.strptime("01/01/1900", "%d/%m/%Y")
         self.name = name
         if initial_rating:
-            self.rating = {date: initial_rating}
+            self.rating = {_RATINGS_START_DATE: initial_rating}
         else:
-            self.rating = {date: _DEFAULT_RATING}
+            self.rating = {_RATINGS_START_DATE: _DEFAULT_RATING}
 
     def update_rating(self, date: datetime, rating: int) -> None:
         self.rating[date] = rating
@@ -42,6 +44,13 @@ class Team:
                     break
                 previous_rating = rating
             return previous_rating
+
+    def show_rating_history(self) -> None:
+        fig, ax = plt.subplots()
+        x = [x for x in self.rating.keys()]
+        y = [y for y in self.rating.values()]
+        plt.plot(x, y)
+        plt.show()
 
 
 @dataclass
