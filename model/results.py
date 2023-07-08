@@ -94,6 +94,10 @@ class ResultsDataset:
         for match in self.matches:
             rating_system.update_ratings(match)
 
+    def calculate_rankings(self) -> None:
+        # TODO: Add ranking function
+        pass
+
     def write_results_to_csv(self, output_path: Path) -> None:
         df = pd.DataFrame()
         for idx, match in enumerate(self.matches):
