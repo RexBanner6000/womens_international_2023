@@ -1,8 +1,10 @@
 from dataclasses import dataclass, field
+from datetime import timedelta
 from typing import List, Optional
 
 import pandas as pd
 from pandas import DataFrame
+from pathlib import Path
 
 from model.entities import Event, Match, Team, Tournament
 from model.ratings import ELORater
@@ -91,3 +93,30 @@ class ResultsDataset:
         rating_system = ELORater()
         for match in self.matches:
             rating_system.update_ratings(match)
+
+    def write_results_to_csv(self, output_path: Path) -> None:
+        df = pd.DataFrame()
+        for idx, match in enumerate(self.matches):
+            match_dict = self._match_to_dict(match)
+            df = pd.concat([df, pd.DataFrame(match_dict, index=[idx])])
+        df.to_csv(output_path, index=False)
+
+    @staticmethod
+    def _match_to_dict(match: Match):
+        if match.home_score > match.away_score:
+            result = 1
+        elif match.home_score < match.away_score:
+            result = 0
+        else:
+            result = 0.5
+
+        home_rating = match.home_team.get_rating(match.date - timedelta(days=1))
+        away_rating = match.away_team.get_rating(match.date - timedelta(days=1))
+
+        return {
+            "home_team": match.home_team.name,
+            "away_team": match.away_team.name,
+            "result": result,
+            "home_rating": home_rating,
+            "away_rating": away_rating
+        }
