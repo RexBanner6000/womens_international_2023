@@ -75,3 +75,22 @@ class Match:
     country: Optional[str] = None
     neutral: Optional[bool] = None
     type: MatchType = MatchType.OTHER_TOURNAMENTS
+
+    def find_event_type(self, event_name: str) -> None:
+        if "qualifiers" in event_name.lower() or "qualification" in event_name.lower():
+            self.type = MatchType.QUALIFIERS
+        elif "world cup" in event_name.lower():
+            self.type = MatchType.WORLD_CUP
+        elif "olympic" in event_name.lower():
+            self.type = MatchType.OLYMPIC_GAMES
+        elif "friend" in event_name.lower():
+            self.type = MatchType.FRIENDLY
+        elif (
+            "concacaf" in event_name.lower()
+            or "copa america" in event_name.lower()
+            or "euro" in event_name.lower()
+            or "african cup" in event_name.lower()
+        ):
+            self.type = MatchType.CONTINENTAL
+        else:
+            self.type = MatchType.OTHER_TOURNAMENTS

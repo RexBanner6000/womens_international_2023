@@ -70,7 +70,6 @@ class ResultsDataset:
         return tournament
 
     def _get_matches_from_df(self, df: DataFrame) -> None:
-        # TODO: Get match type
         df["date"] = pd.to_datetime(df["date"])
         df = df.sort_values("date")
         for index, row in df.iterrows():
@@ -89,6 +88,7 @@ class ResultsDataset:
                     neutral=bool(row["neutral"]),
                 )
             )
+            self.matches[-1].find_event_type(row["tournament"])
 
     def calculate_ratings(self) -> None:
         rating_system = ELORater()
@@ -124,5 +124,5 @@ class ResultsDataset:
             "result": result,
             "home_rating": home_rating,
             "away_rating": away_rating,
-            "match_type": str(match.type)
+            "match_type": str(match.type),
         }
