@@ -61,6 +61,7 @@ class Team:
             last_played = match_date
         return last_played
 
+
 @dataclass
 class Event:
     name: str
