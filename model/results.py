@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
 from datetime import timedelta
+from pathlib import Path
 from typing import List, Optional
 
 import pandas as pd
 from pandas import DataFrame
-from pathlib import Path
 
 from model.entities import Event, Match, Team, Tournament
 from model.ratings import ELORater
@@ -118,5 +118,5 @@ class ResultsDataset:
             "away_team": match.away_team.name,
             "result": result,
             "home_rating": home_rating,
-            "away_rating": away_rating
+            "away_rating": away_rating,
         }

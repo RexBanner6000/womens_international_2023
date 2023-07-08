@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from data_ingestor.ingestor import create_dataset_from_file
 
 if __name__ == "__main__":
