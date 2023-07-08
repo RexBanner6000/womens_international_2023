@@ -47,6 +47,7 @@ class Team:
 
     def show_rating_history(self) -> None:
         fig, ax = plt.subplots()
+        plt.title(self.name)
         x = [x for x in self.rating.keys()]
         y = [y for y in self.rating.values()]
         plt.plot(x, y)
