@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import timedelta
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Optional
 
@@ -95,8 +95,8 @@ class ResultsDataset:
         for match in self.matches:
             rating_system.update_ratings(match)
 
-    def calculate_rankings(self) -> None:
-        # TODO: Add ranking function
+    def calculate_rankings(self, date: datetime, n_years: int = 4) -> None:
+
         pass
 
     def write_results_to_csv(self, output_path: Path) -> None:

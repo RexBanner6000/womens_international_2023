@@ -53,6 +53,13 @@ class Team:
         plt.plot(x, y)
         plt.show()
 
+    def get_last_played_date(self, date: datetime) -> Optional[datetime]:
+        last_played = None
+        for match_date in self.rating.keys():
+            if match_date > date:
+                return last_played
+            last_played = match_date
+        return last_played
 
 @dataclass
 class Event:
