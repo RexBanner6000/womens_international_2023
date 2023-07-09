@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame
 
-from model.entities import Event, Match, Team, Tournament
+from model.entities import Event, Match, Result, Team, Tournament
 from model.ratings import ELORater
 
 
@@ -120,11 +120,11 @@ class ResultsDataset:
 
     def _match_to_dict(self, match: Match):
         if match.home_score > match.away_score:
-            result = 1
+            result = Result.HOME_WIN
         elif match.home_score < match.away_score:
-            result = 0
+            result = Result.AWAY_WIN
         else:
-            result = 0.5
+            result = Result.DRAW
 
         home_rating = match.home_team.get_rating(match.date - timedelta(days=1))
         away_rating = match.away_team.get_rating(match.date - timedelta(days=1))
@@ -139,5 +139,5 @@ class ResultsDataset:
             "match_type": str(match.type),
             "home_ranking": world_rankings[match.home_team.name],
             "away_ranking": world_rankings[match.away_team.name],
-            "result": result,
+            "result": result.value,
         }
