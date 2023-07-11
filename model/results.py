@@ -176,6 +176,7 @@ class ResultsDataset:
         away_scored, away_conceded = self.get_team_goals_from_matches(match.away_team.name, last_games_away)
 
         return {
+            "date": match.date.strftime("%d/%m/%Y"),
             "home_team": match.home_team.name,
             "away_team": match.away_team.name,
             "home_rating": home_rating,
