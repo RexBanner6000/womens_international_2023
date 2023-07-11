@@ -96,8 +96,28 @@ class ResultsDataset:
             rating_system.update_ratings(match)
 
     def calculate_rankings(self, date: datetime, n_years: int = 4) -> None:
-
         pass
+
+    def get_most_recent_matches(
+        self, team_name: str, date: datetime, n_days: int = 90
+    ) -> Optional[List[Match]]:
+        team_matches = []
+        for match in self.matches:
+            if date - timedelta(days=n_days) < match.date < date:
+                if team_name in [match.home_team.name, match.away_team.name]:
+                    team_matches.append(match)
+        return team_matches
+
+    def get_last_n_games(self, team_name: str, date: datetime, n_games: int = 5):
+        team_matches = []
+        for match in self.matches:
+            if match.date < date:
+                if team_name in [match.home_team.name, match.away_team.name]:
+                    team_matches.append(match)
+        if len(team_matches) < n_games:
+            return team_matches
+        else:
+            return team_matches[-n_games:]
 
     def write_results_to_csv(self, output_path: Path) -> None:
         df = pd.DataFrame()
