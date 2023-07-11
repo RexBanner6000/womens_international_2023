@@ -1,6 +1,8 @@
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
+from tqdm import tqdm
 from typing import Dict, List, Optional
 
 import numpy as np
@@ -17,6 +19,7 @@ class ResultsDataset:
     matches: List[Match] = field(default_factory=list)
     tournaments: List[Tournament] = field(default_factory=list)
     teams: List[Team] = field(default_factory=list)
+    matches_by_team: Dict[str, List[Match]] = field(default_factory=lambda: defaultdict(list))
 
     def populate_data_from_df(self, df: DataFrame) -> None:
         self._get_events_from_df(df)
@@ -74,22 +77,23 @@ class ResultsDataset:
         df["date"] = pd.to_datetime(df["date"])
         df = df.sort_values("date")
         for index, row in df.iterrows():
-            self.matches.append(
-                Match(
-                    home_team=self._create_team(row["home_team"]),
-                    away_team=self._create_team(row["away_team"]),
-                    date=row["date"],
-                    home_score=row["home_score"],
-                    away_score=row["away_score"],
-                    tournament=self._create_tournament(
-                        row["tournament"], row["date"].year
-                    ),
-                    city=row["city"],
-                    country=row["country"],
-                    neutral=bool(row["neutral"]),
-                )
+            match = Match(
+                home_team=self._create_team(row["home_team"]),
+                away_team=self._create_team(row["away_team"]),
+                date=row["date"],
+                home_score=row["home_score"],
+                away_score=row["away_score"],
+                tournament=self._create_tournament(
+                    row["tournament"], row["date"].year
+                ),
+                city=row["city"],
+                country=row["country"],
+                neutral=bool(row["neutral"]),
             )
-            self.matches[-1].find_event_type(row["tournament"])
+            match.find_event_type(row["tournament"])
+            self.matches.append(match)
+            self.matches_by_team[match.home_team.name].append(match)
+            self.matches_by_team[match.away_team.name].append(match)
 
     def calculate_ratings(self) -> None:
         rating_system = ELORater()
@@ -99,11 +103,13 @@ class ResultsDataset:
     def calculate_rankings(self, date: datetime, n_years: int = 4) -> Dict[str, int]:
         current_ratings = {}
         for team in self.teams:
-            if date - team.get_last_played_date(date) < timedelta(n_years * 365):
-                current_ratings[team.name] = team.get_rating(date)
-            else:
+            try:
+                if date - team.get_last_played_date(date) < timedelta(n_years * 365):
+                    current_ratings[team.name] = team.get_rating(date)
+                else:
+                    current_ratings[team.name] = np.nan
+            except TypeError:
                 current_ratings[team.name] = np.nan
-
         return {
             key: rank
             for rank, key in enumerate(
@@ -115,7 +121,7 @@ class ResultsDataset:
         self, team_name: str, date: datetime, n_days: int = 90
     ) -> Optional[List[Match]]:
         team_matches = []
-        for match in self.matches:
+        for match in self.matches_by_team[team_name]:
             if date - timedelta(days=n_days) < match.date < date:
                 if team_name in [match.home_team.name, match.away_team.name]:
                     team_matches.append(match)
@@ -123,7 +129,7 @@ class ResultsDataset:
 
     def get_last_n_games(self, team_name: str, date: datetime, n_games: int = 5):
         team_matches = []
-        for match in self.matches:
+        for match in self.matches_by_team[team_name]:
             if match.date < date:
                 if team_name in [match.home_team.name, match.away_team.name]:
                     team_matches.append(match)
@@ -132,9 +138,22 @@ class ResultsDataset:
         else:
             return team_matches[-n_games:]
 
+    @staticmethod
+    def get_team_goals_from_matches(team_name: str, matches: List[Match]) -> (int, int):
+        scored = 0
+        conceded = 0
+        for match in matches:
+            if match.home_team.name is team_name:
+                scored += match.home_score
+                conceded += match.away_score
+            elif match.away_team.name is team_name:
+                scored += match.away_score
+                conceded += match.home_score
+        return scored, conceded
+
     def write_results_to_csv(self, output_path: Path) -> None:
         df = pd.DataFrame()
-        for idx, match in enumerate(self.matches):
+        for idx, match in enumerate(tqdm(self.matches)):
             match_dict = self._match_to_dict(match)
             df = pd.concat([df, pd.DataFrame(match_dict, index=[idx])])
         df.to_csv(output_path, index=False)
@@ -152,6 +171,11 @@ class ResultsDataset:
 
         world_rankings = self.calculate_rankings(match.date)
 
+        last_games_home = self.get_last_n_games(match.home_team.name, match.date)
+        last_games_away = self.get_last_n_games(match.away_team.name, match.date)
+        home_scored, home_conceded = self.get_team_goals_from_matches(match.home_team.name, last_games_home)
+        away_scored, away_conceded = self.get_team_goals_from_matches(match.away_team.name, last_games_away)
+
         return {
             "home_team": match.home_team.name,
             "away_team": match.away_team.name,
@@ -160,5 +184,9 @@ class ResultsDataset:
             "match_type": str(match.type),
             "home_ranking": world_rankings[match.home_team.name],
             "away_ranking": world_rankings[match.away_team.name],
+            "home_recent_scored": home_scored,
+            "away_recent_scored": away_scored,
+            "home_recent_conceded": home_conceded,
+            "away_recent_conceded": away_conceded,
             "result": result.value,
         }
