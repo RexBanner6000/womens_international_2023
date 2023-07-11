@@ -1,12 +1,13 @@
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Optional
+from typing import Dict, List, Optional
 
+import numpy as np
 import pandas as pd
 from pandas import DataFrame
 
-from model.entities import Event, Match, Team, Tournament
+from model.entities import Event, Match, Result, Team, Tournament
 from model.ratings import ELORater
 
 
@@ -95,8 +96,20 @@ class ResultsDataset:
         for match in self.matches:
             rating_system.update_ratings(match)
 
-    def calculate_rankings(self, date: datetime, n_years: int = 4) -> None:
-        pass
+    def calculate_rankings(self, date: datetime, n_years: int = 4) -> Dict[str, int]:
+        current_ratings = {}
+        for team in self.teams:
+            if date - team.get_last_played_date(date) < timedelta(n_years * 365):
+                current_ratings[team.name] = team.get_rating(date)
+            else:
+                current_ratings[team.name] = np.nan
+
+        return {
+            key: rank
+            for rank, key in enumerate(
+                sorted(current_ratings, key=current_ratings.get, reverse=True), 1
+            )
+        }
 
     def get_most_recent_matches(
         self, team_name: str, date: datetime, n_days: int = 90
@@ -126,23 +139,26 @@ class ResultsDataset:
             df = pd.concat([df, pd.DataFrame(match_dict, index=[idx])])
         df.to_csv(output_path, index=False)
 
-    @staticmethod
-    def _match_to_dict(match: Match):
+    def _match_to_dict(self, match: Match):
         if match.home_score > match.away_score:
-            result = 1
+            result = Result.HOME_WIN
         elif match.home_score < match.away_score:
-            result = 0
+            result = Result.AWAY_WIN
         else:
-            result = 0.5
+            result = Result.DRAW
 
         home_rating = match.home_team.get_rating(match.date - timedelta(days=1))
         away_rating = match.away_team.get_rating(match.date - timedelta(days=1))
 
+        world_rankings = self.calculate_rankings(match.date)
+
         return {
             "home_team": match.home_team.name,
             "away_team": match.away_team.name,
-            "result": result,
             "home_rating": home_rating,
             "away_rating": away_rating,
             "match_type": str(match.type),
+            "home_ranking": world_rankings[match.home_team.name],
+            "away_ranking": world_rankings[match.away_team.name],
+            "result": result.value,
         }

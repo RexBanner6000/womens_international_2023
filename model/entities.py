@@ -20,6 +20,13 @@ class MatchType(Enum):
 
 
 @dataclass
+class Result(Enum):
+    AWAY_WIN = 0
+    HOME_WIN = 1
+    DRAW = 2
+
+
+@dataclass
 class Team:
     name: str
     rating: Dict[datetime, int]
