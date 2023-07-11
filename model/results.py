@@ -131,8 +131,7 @@ class ResultsDataset:
         team_matches = []
         for match in self.matches_by_team[team_name]:
             if match.date < date:
-                if team_name in [match.home_team.name, match.away_team.name]:
-                    team_matches.append(match)
+                team_matches.append(match)
         if len(team_matches) < n_games:
             return team_matches
         else:
