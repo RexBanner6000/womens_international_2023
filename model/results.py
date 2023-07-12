@@ -2,14 +2,14 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
-from tqdm import tqdm
 from typing import Dict, List, Optional
 
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
+from tqdm import tqdm
 
-from model.entities import Event, Match, Result, Team, Tournament
+from model.entities import Event, Match, MatchType, Result, Team, Tournament
 from model.ratings import ELORater
 
 
@@ -19,7 +19,9 @@ class ResultsDataset:
     matches: List[Match] = field(default_factory=list)
     tournaments: List[Tournament] = field(default_factory=list)
     teams: List[Team] = field(default_factory=list)
-    matches_by_team: Dict[str, List[Match]] = field(default_factory=lambda: defaultdict(list))
+    matches_by_team: Dict[str, List[Match]] = field(
+        default_factory=lambda: defaultdict(list)
+    )
 
     def populate_data_from_df(self, df: DataFrame) -> None:
         self._get_events_from_df(df)
@@ -83,9 +85,7 @@ class ResultsDataset:
                 date=row["date"],
                 home_score=row["home_score"],
                 away_score=row["away_score"],
-                tournament=self._create_tournament(
-                    row["tournament"], row["date"].year
-                ),
+                tournament=self._create_tournament(row["tournament"], row["date"].year),
                 city=row["city"],
                 country=row["country"],
                 neutral=bool(row["neutral"]),
@@ -172,8 +172,12 @@ class ResultsDataset:
 
         last_games_home = self.get_last_n_games(match.home_team.name, match.date)
         last_games_away = self.get_last_n_games(match.away_team.name, match.date)
-        home_scored, home_conceded = self.get_team_goals_from_matches(match.home_team.name, last_games_home)
-        away_scored, away_conceded = self.get_team_goals_from_matches(match.away_team.name, last_games_away)
+        home_scored, home_conceded = self.get_team_goals_from_matches(
+            match.home_team.name, last_games_home
+        )
+        away_scored, away_conceded = self.get_team_goals_from_matches(
+            match.away_team.name, last_games_away
+        )
 
         return {
             "date": match.date.strftime("%d/%m/%Y"),
@@ -190,3 +194,57 @@ class ResultsDataset:
             "away_recent_conceded": away_conceded,
             "result": result.value,
         }
+
+    def create_test_df(self, submission_df: pd.DataFrame) -> pd.DataFrame:
+        test_df = pd.DataFrame()
+        for index, row in submission_df.iterrows():
+            fixture_dict = self._fixture_to_dict(
+                row["team1"], row["team2"], datetime(2023, 7, 20), row["group"]
+            )
+            test_df = pd.concat([test_df, pd.DataFrame(fixture_dict, index=[index])])
+        return test_df
+
+    def _fixture_to_dict(
+        self,
+        home_team_name: str,
+        away_team_name: str,
+        date: datetime,
+        match_type: MatchType = MatchType.WORLD_CUP,
+    ) -> Dict:
+
+        home_team = self.get_team_from_name(self.remap_team_name(home_team_name))
+        away_team = self.get_team_from_name(self.remap_team_name(away_team_name))
+        world_rankings = self.calculate_rankings(date)
+
+        last_games_home = self.get_last_n_games(home_team.name, date)
+        last_games_away = self.get_last_n_games(away_team.name, date)
+        home_scored, home_conceded = self.get_team_goals_from_matches(
+            home_team.name, last_games_home
+        )
+        away_scored, away_conceded = self.get_team_goals_from_matches(
+            away_team.name, last_games_away
+        )
+        return {
+            "home_team": home_team.name,
+            "away_team": away_team.name,
+            "home_rating": home_team.get_rating(date),
+            "away_rating": away_team.get_rating(date),
+            "match_type": str(match_type),
+            "home_ranking": world_rankings[home_team.name],
+            "away_ranking": world_rankings[away_team.name],
+            "home_recent_scored": home_scored,
+            "away_recent_scored": away_scored,
+            "home_recent_conceded": home_conceded,
+            "away_recent_conceded": away_conceded,
+        }
+
+    @staticmethod
+    def remap_team_name(team_name: str) -> str:
+        name_remaps = {
+            "USA": "United States",
+            "Korea Republic": "South Korea"
+        }
+        if name_remaps.get(team_name):
+            return name_remaps[team_name]
+        else:
+            return team_name

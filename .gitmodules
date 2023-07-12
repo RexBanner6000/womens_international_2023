@@ -1,0 +1,3 @@
+[submodule "rss-wwc-2023-prediction-competition"]
+	path = rss-wwc-2023-prediction-competition
+	url = https://github.com/mberk/rss-wwc-2023-prediction-competition.git
