@@ -12,7 +12,7 @@ _RATINGS_START_DATE = datetime.strptime("01/01/1950", "%d/%m/%Y")
 @dataclass
 class MatchType(Enum):
     WORLD_CUP = 60
-    OLYMPIC_GAMES = 30
+    OLYMPIC_GAMES = 40
     CONTINENTAL = 50
     QUALIFIERS = 40
     OTHER_TOURNAMENTS = 30
