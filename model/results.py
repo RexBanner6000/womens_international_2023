@@ -199,7 +199,7 @@ class ResultsDataset:
         test_df = pd.DataFrame()
         for index, row in submission_df.iterrows():
             fixture_dict = self._fixture_to_dict(
-                row["team1"], row["team2"], datetime(2023, 7, 20), row["group"]
+                row["team1"], row["team2"], datetime(2023, 7, 20)
             )
             test_df = pd.concat([test_df, pd.DataFrame(fixture_dict, index=[index])])
         return test_df
