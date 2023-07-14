@@ -21,8 +21,8 @@ class MatchType(Enum):
 
 @dataclass
 class Result(Enum):
-    AWAY_WIN = 0
-    HOME_WIN = 1
+    AWAY_WIN = 1
+    HOME_WIN = 0
     DRAW = 2
 
 
