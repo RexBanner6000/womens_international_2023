@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
+from argparse import ArgumentParser
 from sklearn.model_selection import GridSearchCV, train_test_split
+from pathlib import Path
 from xgboost import XGBClassifier
 
 
@@ -26,8 +28,28 @@ def post_process_predictions(y_preds: np.ndarray, submission_template: pd.DataFr
 
 
 if __name__ == "__main__":
-    matches_df = pd.read_csv("./results.csv")
-    test_df = pd.read_csv("./test.csv")
+    parser = ArgumentParser()
+
+    parser.add_argument(
+        "training_data",
+        type=Path,
+    )
+
+    parser.add_argument(
+        "test_data",
+        type=Path
+    )
+
+    parser.add_argument(
+        "--output_file",
+        type=str,
+        default="xgboost_predictions.csv"
+    )
+
+    args = parser.parse_args()
+
+    matches_df = pd.read_csv(args.training_data)
+    test_df = pd.read_csv(args.test_data)
     matches_df["match_type"] = matches_df["match_type"].apply(remove_enum_from_str)
     test_df["match_type"] = test_df["match_type"].apply(remove_enum_from_str)
     test_df["match_type"] = test_df["match_type"].astype("category")
@@ -73,4 +95,4 @@ if __name__ == "__main__":
 
     submission_template = pd.read_csv("./rss-wwc-2023-prediction-competition/submission-template.csv")
     submission = post_process_predictions(y_preds, submission_template)
-    submission.to_csv("./predictions.csv", index=False)
+    submission.to_csv(args.output_file, index=False)
