@@ -1,9 +1,7 @@
 import numpy as np
 import pandas as pd
-import xgboost as xgb
 from sklearn.model_selection import GridSearchCV, train_test_split
-
-from xgboost import cv, XGBClassifier
+from xgboost import XGBClassifier
 
 
 def remove_enum_from_str(name: str) -> str:
