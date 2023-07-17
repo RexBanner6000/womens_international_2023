@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from argparse import ArgumentParser
+from sklearn.metrics import log_loss
 from sklearn.model_selection import GridSearchCV, train_test_split
 from pathlib import Path
 from xgboost import XGBClassifier
@@ -90,6 +91,15 @@ if __name__ == "__main__":
     )
 
     grid_search.fit(X, y)
+
+    test_df = pd.read_csv("womens_test_data.csv")
+    y_test = test_df.pop("result")
+    X_test = process_input_data(test_df)
+
+    y_test_preds = grid_search.best_estimator_.predict_proba(X_test)
+
+    print(f"Best parameters: {grid_search.best_params_}")
+    print(f"Log loss: {log_loss(y_test, y_test_preds):.3f}")
 
     submission_df = pd.read_csv(args.submission_data)
     X_submission = process_input_data(submission_df)
