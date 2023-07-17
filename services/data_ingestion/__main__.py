@@ -5,7 +5,7 @@ import pandas as pd
 
 from data_ingestor.ingestor import create_dataset_from_file
 
-raw_data = "./data/kaggle/mens_results.csv"
+raw_data = "./data/kaggle/results.csv"
 sample_submission = "./rss-wwc-2023-prediction-competition/submission-template.csv"
 
 if __name__ == "__main__":
