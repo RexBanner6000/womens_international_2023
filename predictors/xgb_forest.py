@@ -27,6 +27,18 @@ def post_process_predictions(y_preds: np.ndarray, submission_template: pd.DataFr
     return submission
 
 
+def process_input_data(df: pd.DataFrame) -> pd.DataFrame:
+    df["match_type"] = df["match_type"].apply(remove_enum_from_str)
+    categorical_vars = df.select_dtypes(exclude=np.number).columns.to_list()
+
+    for col in categorical_vars:
+        df[col] = df[col].astype("category")
+
+    return df[
+        ["home_rating", "away_rating", "match_type", "home_ranking", "away_ranking", "home_recent_scored", "away_recent_scored", "home_recent_conceded", "away_recent_conceded"]
+    ]
+
+
 if __name__ == "__main__":
     parser = ArgumentParser()
 
@@ -49,15 +61,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     matches_df = pd.read_csv(args.training_data)
-    matches_df["match_type"] = matches_df["match_type"].apply(remove_enum_from_str)
     y = matches_df.pop("result")
+    X = process_input_data(matches_df)
 
-    categorical_vars = matches_df.select_dtypes(exclude=np.number).columns.to_list()
-
-    for col in categorical_vars:
-        matches_df[col] = matches_df[col].astype("category")
-
-    X = matches_df.drop(columns=["date", "home_team", "away_team"])
     X_train, X_val, y_train, y_val = train_test_split(X, y, random_state=1)
 
     model = XGBClassifier(
@@ -86,10 +92,7 @@ if __name__ == "__main__":
     grid_search.fit(X, y)
 
     submission_df = pd.read_csv(args.submission_data)
-    submission_df["match_type"] = submission_df["match_type"].apply(remove_enum_from_str)
-    submission_df["match_type"] = submission_df["match_type"].astype("category")
-    X_submission = submission_df.drop(columns=["home_team", "away_team"])
-
+    X_submission = process_input_data(submission_df)
 
     y_preds = grid_search.best_estimator_.predict_proba(X_submission)
     np.savetxt("raw_predictions.csv", y_preds, delimiter=",")
