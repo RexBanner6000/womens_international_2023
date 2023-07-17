@@ -60,9 +60,9 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    matches_df = pd.read_csv(args.training_data)
-    y = matches_df.pop("result")
-    X = process_input_data(matches_df)
+    train_df = pd.read_csv(args.training_data)
+    y = train_df.pop("result")
+    X = process_input_data(train_df)
 
     X_train, X_val, y_train, y_val = train_test_split(X, y, random_state=1)
 
