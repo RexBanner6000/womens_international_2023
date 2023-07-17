@@ -36,7 +36,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "test_data",
+        "submission_data",
         type=Path
     )
 
@@ -49,10 +49,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     matches_df = pd.read_csv(args.training_data)
-    test_df = pd.read_csv(args.test_data)
     matches_df["match_type"] = matches_df["match_type"].apply(remove_enum_from_str)
-    test_df["match_type"] = test_df["match_type"].apply(remove_enum_from_str)
-    test_df["match_type"] = test_df["match_type"].astype("category")
     y = matches_df.pop("result")
 
     categorical_vars = matches_df.select_dtypes(exclude=np.number).columns.to_list()
@@ -61,8 +58,6 @@ if __name__ == "__main__":
         matches_df[col] = matches_df[col].astype("category")
 
     X = matches_df.drop(columns=["date", "home_team", "away_team"])
-    X_test = test_df.drop(columns=["home_team", "away_team"])
-
     X_train, X_val, y_train, y_val = train_test_split(X, y, random_state=1)
 
     model = XGBClassifier(
@@ -90,7 +85,13 @@ if __name__ == "__main__":
 
     grid_search.fit(X, y)
 
-    y_preds = grid_search.best_estimator_.predict_proba(X_test)
+    submission_df = pd.read_csv(args.submission_data)
+    submission_df["match_type"] = submission_df["match_type"].apply(remove_enum_from_str)
+    submission_df["match_type"] = submission_df["match_type"].astype("category")
+    X_submission = submission_df.drop(columns=["home_team", "away_team"])
+
+
+    y_preds = grid_search.best_estimator_.predict_proba(X_submission)
     np.savetxt("raw_predictions.csv", y_preds, delimiter=",")
 
     submission_template = pd.read_csv("./rss-wwc-2023-prediction-competition/submission-template.csv")
