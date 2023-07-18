@@ -211,7 +211,6 @@ class ResultsDataset:
         date: datetime,
         match_type: MatchType = MatchType.WORLD_CUP,
     ) -> Dict:
-
         home_team = self.get_team_from_name(self.remap_team_name(home_team_name))
         away_team = self.get_team_from_name(self.remap_team_name(away_team_name))
         world_rankings = self.calculate_rankings(date)
@@ -240,10 +239,7 @@ class ResultsDataset:
 
     @staticmethod
     def remap_team_name(team_name: str) -> str:
-        name_remaps = {
-            "USA": "United States",
-            "Korea Republic": "South Korea"
-        }
+        name_remaps = {"USA": "United States", "Korea Republic": "South Korea"}
         if name_remaps.get(team_name):
             return name_remaps[team_name]
         else:

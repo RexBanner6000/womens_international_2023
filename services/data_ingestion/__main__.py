@@ -5,35 +5,26 @@ import pandas as pd
 
 from data_ingestor.ingestor import create_dataset_from_file
 
-
 if __name__ == "__main__":
     parser = ArgumentParser()
-    parser.add_argument(
-        "raw_data",
-        help="Match results file to ingest",
-        type=Path
-    )
+    parser.add_argument("raw_data", help="Match results file to ingest", type=Path)
 
-    parser.add_argument(
-        "sample_submission",
-        help="Sample submission file",
-        type=Path
-    )
+    parser.add_argument("sample_submission", help="Sample submission file", type=Path)
 
     parser.add_argument(
         "--training_output",
         help="File name for training output",
-        default="training_data.csv"
+        default="training_data.csv",
     )
 
     parser.add_argument(
         "--submission_output",
         help="File name for submission output",
-        default="submission_data.csv"
+        default="submission_data.csv",
     )
 
     args = parser.parse_args()
-    
+
     print(f"Reading data from {args.raw_data}...")
     results = create_dataset_from_file(Path(args.raw_data))
 
