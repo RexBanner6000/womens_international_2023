@@ -68,6 +68,14 @@ if __name__ == "__main__":
         default=None
     )
 
+    parser.add_argument(
+        "--probability_clip",
+        "-p",
+        help="Predictions will be clipped between p and 1-p",
+        type=float,
+        default=0.
+    )
+
     args = parser.parse_args()
 
     train_df = pd.read_csv(args.training_data)
@@ -115,6 +123,9 @@ if __name__ == "__main__":
     print(f"Best parameters: {grid_search.best_params_}")
     print(f"Log loss: {log_loss(y_test, y_test_preds):.3f}")
 
+    if args.probability_clip != 0:
+        print(f"Clipped Log loss: {log_loss(y_test, y_test_preds.clip(args.probability_clip, 1-args.probability_clip)):.3f}")
+
     submission_df = pd.read_csv(args.submission_data)
     X_submission = process_input_data(submission_df)
 
@@ -123,4 +134,7 @@ if __name__ == "__main__":
 
     submission_template = pd.read_csv("./rss-wwc-2023-prediction-competition/submission-template.csv")
     submission = post_process_predictions(y_preds, submission_template)
+
+    submission[['p_team1_win', 'p_team2_win', 'p_draw']] = submission[['p_team1_win', 'p_team2_win', 'p_draw']].copy().clip(args.probability_clip, 1-args.probability_clip)
+
     submission.to_csv(args.output_file, index=False)
