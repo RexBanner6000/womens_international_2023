@@ -1,9 +1,11 @@
 import numpy as np
 import pandas as pd
 from argparse import ArgumentParser
+from datetime import datetime
 from sklearn.metrics import log_loss
 from sklearn.model_selection import GridSearchCV, train_test_split
 from pathlib import Path
+from typing import Optional
 from xgboost import XGBClassifier
 
 
@@ -59,9 +61,21 @@ if __name__ == "__main__":
         default="xgboost_predictions.csv"
     )
 
+    parser.add_argument(
+        "--start_date",
+        help="Only use data from this date, dd/mm/yyyy format",
+        type=str,
+        default=None
+    )
+
     args = parser.parse_args()
 
     train_df = pd.read_csv(args.training_data)
+    train_df["date"] = pd.to_datetime(train_df["date"], format="%d/%m/%Y")
+    if args.start_date:
+        start_date = datetime.strptime(args.start_date, "%d/%m/%Y")
+        train_df = train_df[train_df["date"] >= start_date].copy()
+
     y = train_df.pop("result")
     X = process_input_data(train_df)
 
@@ -75,9 +89,9 @@ if __name__ == "__main__":
     )
 
     parameters = {
-        'max_depth': range(4, 10, 1),
-        'n_estimators': range(60, 220, 40),
-        'learning_rate': [0.1, 0.01, 0.05]
+        'max_depth': range(2, 5, 1),
+        'n_estimators': range(20, 100, 40),
+        'learning_rate': [0.1, 0.05]
     }
 
     grid_search = GridSearchCV(
