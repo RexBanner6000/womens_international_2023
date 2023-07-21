@@ -74,11 +74,7 @@ if __name__ == "__main__":
 
     chrome_bin = os.environ.get('GOOGLE_CHROME_SHIM', None)
     if chrome_bin:
-        opts = ChromeOptions()
-        opts.binary_location = chrome_bin
-        driver = webdriver.Chrome(
-            executable_path="chromedriver", chrome_options=opts
-        )
+        driver = webdriver.Chrome(chrome_bin)
     else:
         driver = webdriver.Chrome()
 
