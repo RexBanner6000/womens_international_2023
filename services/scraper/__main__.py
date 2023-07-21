@@ -81,6 +81,7 @@ if __name__ == "__main__":
     driver.get(url)
     summary = driver.find_elements(By.CLASS_NAME, "event--summary")
     matches = summary[0].find_elements(By.CLASS_NAME, "event__match--twoLine")
+    print(f"Found {len(matches)} matches...")
 
     conn = connect_to_db()
 
