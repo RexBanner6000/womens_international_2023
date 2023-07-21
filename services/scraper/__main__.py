@@ -6,6 +6,7 @@ from datetime import datetime
 from enum import Enum
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.by import By
 
 
@@ -68,8 +69,19 @@ def is_match_in_db(result: MatchResult, conn) -> bool:
 
 
 if __name__ == "__main__":
+
     url = "https://www.flashscore.co.uk/football/world/world-cup-women/#/plFV0LBD/live"
-    driver = webdriver.Chrome()
+
+    chrome_bin = os.environ.get('GOOGLE_CHROME_SHIM', None)
+    if chrome_bin:
+        opts = ChromeOptions()
+        opts.binary_location = chrome_bin
+        driver = webdriver.Chrome(
+            executable_path="chromedriver", chrome_options=opts
+        )
+    else:
+        driver = webdriver.Chrome()
+
     driver.get(url)
     summary = driver.find_elements(By.CLASS_NAME, "event--summary")
     matches = summary[0].find_elements(By.CLASS_NAME, "event__match--twoLine")
