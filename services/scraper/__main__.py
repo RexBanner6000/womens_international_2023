@@ -40,6 +40,7 @@ def write_match_to_db(result: MatchResult, conn) -> None:
     sql = generate_match_sql(result)
     cur = conn.cursor()
     cur.execute(sql)
+    conn.commit()
 
 
 def generate_match_sql(result: MatchResult) -> str:
@@ -56,6 +57,14 @@ def get_status(event_stage: str) -> EventStatus:
         return EventStatus.FINISHED
     else:
         return EventStatus.UNKNOWN
+
+
+def is_match_in_db(result: MatchResult, conn) -> bool:
+    sql = f"select * from results r where r.home_team = '{result.home_team}' and r.away_team = '{result.away_team}' and stage = '{result.match_stage.value}' and status = 'FINISHED'"
+    cur = conn.cursor()
+    cur.execute(sql)
+    results = cur.fetchall()
+    return True if len(results) > 0 else False
 
 
 if __name__ == "__main__":
@@ -82,8 +91,8 @@ if __name__ == "__main__":
 
             if event_status == EventStatus.FINISHED:
                 match_result = match = MatchResult(
-                    home_team=home_team,
-                    away_team=away_team,
+                    home_team=home_team.replace(" W", ""),
+                    away_team=away_team.replace(" W", ""),
                     home_score=int(home_score),
                     away_score=int(away_score),
                     event_status=event_status,
@@ -92,9 +101,10 @@ if __name__ == "__main__":
         except NoSuchElementException:
             continue
 
-        print(f"Writing {match_result.home_team} vs {match_result.away_team} to db")
-        write_match_to_db(match_result, conn)
-
-    conn.commit()
+        if not is_match_in_db(match_result, conn):
+            print(f"Writing {match_result.home_team} vs {match_result.away_team} to db")
+            write_match_to_db(match_result, conn)
+        else:
+            print(f"Results already present for {match_result.home_team} vs {match_result.away_team}")
 
     print("Done!")
