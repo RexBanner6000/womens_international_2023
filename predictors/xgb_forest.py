@@ -91,6 +91,14 @@ if __name__ == "__main__":
         default=0.0,
     )
 
+    parser.add_argument(
+        "--tree_method",
+        "-t",
+        help="Tree method for XGBClassifier",
+        type=str,
+        default="gpu_hist"
+    )
+
     args = parser.parse_args()
 
     train_df = pd.read_csv(args.training_data)
@@ -106,7 +114,7 @@ if __name__ == "__main__":
 
     model = XGBClassifier(
         objective="multi:softmax",
-        tree_method="gpu_hist",
+        tree_method=args.tree_method,
         num_class=3,
         enable_categorical=True,
     )
@@ -137,6 +145,11 @@ if __name__ == "__main__":
 
     print(f"Best parameters: {grid_search.best_params_}")
     print(f"Log loss: {log_loss(y_test, y_test_preds):.3f}")
+
+    filename = args.tree_method + "_model.json"
+    print(f"Saving model as {filename}")
+    best_model = grid_search.best_estimator_
+    best_model.save_model(filename)
 
     if args.probability_clip != 0:
         print(
